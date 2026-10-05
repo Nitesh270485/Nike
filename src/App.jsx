@@ -27,8 +27,8 @@ export function App() {
       const target = state.mode === 'auto' ? wave : state.mode === 'green' ? 1 : 0;
       const smoothing = query.matches ? 1 : 1 - Math.exp(-dt * 3.5);
       mix += (target - mix) * smoothing; motion.current.mix = mix;
-      rx += (state.x - rx) * (1 - Math.exp(-dt * 5));
-      ry += (state.y - ry) * (1 - Math.exp(-dt * 5));
+      rx += (state.x - rx) * (1 - Math.exp(-dt * 3.2));
+      ry += (state.y - ry) * (1 - Math.exp(-dt * 3.2));
       gx += ((state.grabX || 0) - gx) * (1 - Math.exp(-dt * 7));
       gy += ((state.grabY || 0) - gy) * (1 - Math.exp(-dt * 7));
       const angle = query.matches || state.hand ? 0 : Math.sin(elapsed * Math.PI / 6);
