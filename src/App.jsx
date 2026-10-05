@@ -1,3 +1,4 @@
+import { HandControl } from './HandControl.jsx';
 import { useEffect, useRef, useState } from 'react';
 import { ProductStory } from './ProductStory.jsx';
 import { ShoppingSection } from './ShoppingSection.jsx';
@@ -16,7 +17,7 @@ export function App() {
     const query = matchMedia('(prefers-reduced-motion: reduce)');
     const update = () => { setReduced(query.matches); setPaused(query.matches); motion.current.paused = query.matches; };
     update(); query.addEventListener('change', update);
-    let frame, last = 0, elapsed = 0, mix = 0, rx = 0, ry = 0;
+    let frame, last = 0, elapsed = 0, mix = 0, rx = 0, ry = 0, gx = 0, gy = 0;
     function animate(now) {
       const dt = last ? Math.min((now - last) / 1000, .05) : 0;
       last = now;
@@ -28,7 +29,9 @@ export function App() {
       mix += (target - mix) * smoothing; motion.current.mix = mix;
       rx += (state.x - rx) * (1 - Math.exp(-dt * 5));
       ry += (state.y - ry) * (1 - Math.exp(-dt * 5));
-      const angle = query.matches ? 0 : Math.sin(elapsed * Math.PI / 6);
+      gx += ((state.grabX || 0) - gx) * (1 - Math.exp(-dt * 7));
+      gy += ((state.grabY || 0) - gy) * (1 - Math.exp(-dt * 7));
+      const angle = query.matches || state.hand ? 0 : Math.sin(elapsed * Math.PI / 6);
       const element = hero.current;
       if (element) {
         const blend = (a,b) => 'rgb('+a.map((v,i)=>Math.round(v+(b[i]-v)*mix)).join(',')+')';
@@ -40,7 +43,8 @@ export function App() {
         element.style.setProperty('--rotation', `${angle * 15 + (query.matches ? 0 : rx * 12)}deg`);
         element.style.setProperty('--roll', `${angle * 5}deg`);
         element.style.setProperty('--pitch', `${query.matches ? 0 : -ry * 6}deg`);
-        element.style.setProperty('--float', `${angle * -13}px`);
+        element.style.setProperty('--float', `${angle * -13 + gy}px`);
+        element.style.setProperty('--grab-x', `${gx}px`);
         element.style.setProperty('--shift', `${angle * 24}px`);
         element.style.setProperty('--shadow-scale', `${1 - Math.abs(angle) * .12}`);
         element.style.setProperty('--progress', `${mix * 100}%`);
@@ -53,6 +57,7 @@ export function App() {
   function select(value) { setMode(value); motion.current.mode = value; }
   function toggleMotion() { setPaused(!paused); motion.current.paused = !paused; }
   function move(event) {
+    if (motion.current.hand) return;
     const box = event.currentTarget.getBoundingClientRect();
     motion.current.x = ((event.clientX - box.left) / box.width - .5) * 2;
     motion.current.y = ((event.clientY - box.top) / box.height - .5) * 2;
@@ -63,7 +68,7 @@ export function App() {
     heel: ['SUPPORT SYSTEM', 'A structured heel and supportive cage keep you comfortably in place.'],
   };
   return <><nav className="site-nav" aria-label="Main navigation"><a className="nav-brand" href="#top">eqt<span>ORIGINALS</span></a><div className="nav-links"><a href="#design-story">The details</a><a href="#questions">Good to know</a></div><div className="nav-actions"><button className="bag-button" onClick={()=>dialogRef.current.showModal()}>Bag <span>{bag?1:0}</span></button><a className="nav-shop" href="#choose-pair">FIND YOUR PAIR</a></div></nav><main className="canvas">
-    <section id="top" className="hero" ref={hero} aria-label="EQT GPR interactive shoe showcase" onPointerMove={move} onPointerLeave={() => { motion.current.x = 0; motion.current.y = 0; }}>
+    <section id="top" className="hero" ref={hero} aria-label="EQT GPR interactive shoe showcase" onPointerMove={move} onPointerLeave={() => { if (!motion.current.hand) { motion.current.x = 0; motion.current.y = 0; } }}>
       <header className="header">
         <a className="brand" href="#" aria-label="EQT Originals home">eqt<span>ORIGINALS</span></a>
         <span className="collection">ORIGINALS / COLLECTION 01</span>
@@ -82,7 +87,7 @@ export function App() {
       <aside className="rail"><span className="rail-label">MAKE YOUR MOVE</span><span className="rail-line"/><span className="rail-number">EQT / 01</span></aside>
       <footer className="footer">
         <div className="color-info"><span className="eyebrow">CHOOSE YOUR ENERGY</span><div className="color-switch" role="group" aria-label="Shoe and background color"><button className="swatch red" aria-label="Red color" aria-pressed={mode === 'red'} onClick={() => select('red')} /><button className="swatch green" aria-label="Green color" aria-pressed={mode === 'green'} onClick={() => select('green')} /><button className="auto" aria-pressed={mode === 'auto'} onClick={() => select('auto')}>AUTO</button></div></div>
-        <div className="motion-control"><button className="pause" aria-pressed={paused} onClick={toggleMotion}>{paused ? 'RESUME COLORS' : 'PAUSE COLORS'}</button><span>{reduced ? 'REDUCED MOTION ENABLED' : 'MOVE YOUR CURSOR TO EXPLORE'}</span></div>
+        <HandControl motion={motion} /><div className="motion-control"><button className="pause" aria-pressed={paused} onClick={toggleMotion}>{paused ? 'RESUME COLORS' : 'PAUSE COLORS'}</button><span>{reduced ? 'REDUCED MOTION ENABLED' : 'MOVE YOUR CURSOR TO EXPLORE'}</span></div>
         <div className="color-track"><span>RED</span><div><i /></div><span>GREEN</span></div>
       </footer>
     </section>
