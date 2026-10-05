@@ -63,3 +63,5 @@ html{scroll-behavior:smooth}.hero{flex-shrink:0}.caption a{color:inherit;text-de
 @media(prefers-reduced-motion:reduce){.hero .shoe-motion .shoe,.shoe-box,.box-lid{transition:none}}
 
 .box-preview{display:block;margin:8px auto 0;background:transparent;border-bottom:1px solid #fff8;padding:6px 10px;color:white;font-size:10px;min-height:32px}
+
+.hero .shoe-box{top:39%;height:34%;width:66%;left:17%;z-index:6}.hero .shoe-stage{overflow:visible}.hero.shoe-packed .shoe-motion{opacity:0}.hero.shoe-packed .hotspot{visibility:hidden}.hero .box-lid{top:0;height:15%;background:linear-gradient(120deg,#f66b48,#b41e18)}.hero .box-body{inset:12% 0 0}.hero .footer{padding-top:16px}.hand-control .box-preview{display:inline-block;margin:5px 4px 0}
