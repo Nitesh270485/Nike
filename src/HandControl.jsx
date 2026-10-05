@@ -4,15 +4,16 @@ import { handPose } from './handPose.mjs';
 export function HandControl({ motion }) {
   const video = useRef(null);
   const session = useRef({ id: 0 });
+  const [packedPreview, setPackedPreview] = useState(false);
   const [phase, setPhase] = useState('off');
-  const [message, setMessage] = useState('Use your hand to tilt. Pinch to move.');
+  const [message, setMessage] = useState('Move your hand to tilt. Pinch to pack. Open to reveal.');
   function release() {
     const s = session.current;
     s.id++; cancelAnimationFrame(s.frame);
     s.stream?.getTracks().forEach(t => t.stop()); s.stream = null;
     s.detector?.close(); s.detector = null;
     if (video.current) video.current.srcObject = null;
-    Object.assign(motion.current, { hand: false, x: 0, y: 0, grabX: 0, grabY: 0 });
+    Object.assign(motion.current, { hand: false, x: 0, y: 0, grabX: 0, grabY: 0, pinching: false });
   }
   function stop() { release(); setPhase('off'); setMessage('Camera off. Mouse control is available.'); }
   useEffect(() => {
@@ -21,6 +22,7 @@ export function HandControl({ motion }) {
     return () => { release(); document.removeEventListener('visibilitychange', hidden); };
   }, []);
   async function start() {
+    motion.current.previewPacked = false; setPackedPreview(false);
     release(); const s = session.current, id = s.id;
     setPhase('loading'); setMessage('Loading hand control…');
     try {
@@ -46,7 +48,7 @@ export function HandControl({ motion }) {
             const points = detector.detectForVideo(video.current, now).landmarks[0];
             const pose = handPose(points, pinching); pinching = pose.pinching;
             Object.assign(motion.current, pose);
-            const label = !points ? 'Show one hand to the camera' : pinching ? 'Pinch held — move your hand' : 'Hand found — move to tilt, pinch to grab';
+            const label = !points ? 'Show one hand to the camera' : pinching ? 'Packed — open your hand to reveal' : 'Move to tilt — pinch to pack the shoe';
             if (label !== lastLabel) { setMessage(label); lastLabel = label; }
           }
           s.frame = requestAnimationFrame(tick);
@@ -62,6 +64,7 @@ export function HandControl({ motion }) {
   const active = phase === 'loading' || phase === 'on';
   return <div className="hand-control">
     <button className="hand-button" onClick={active ? stop : start} aria-pressed={active}>{active ? 'STOP CAMERA' : 'ENABLE HAND CONTROL'}</button>
+    {!active && <button className="box-preview" aria-pressed={packedPreview} onClick={() => { motion.current.previewPacked = !packedPreview; setPackedPreview(!packedPreview); }}>{packedPreview ? 'OPEN BOX' : 'PREVIEW BOX'}</button>}
     <div className="hand-status" role="status">{message}</div>
     <small>Camera frames stay in your browser. Tracking files download on enable.</small>
     <video className={active ? 'hand-video active' : 'hand-video'} ref={video} muted playsInline aria-label="Mirrored camera preview" />

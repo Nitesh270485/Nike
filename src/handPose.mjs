@@ -6,5 +6,5 @@ export function handPose(points, wasPinching = false) {
   const pinching = distance(points[4], points[8]) / palm < (wasPinching ? .48 : .32);
   const x = clamp((.5 - points[9].x) * 2.6);
   const y = clamp((points[9].y - .5) * 2.6);
-  return { x, y, pinching, grabX: pinching ? x * 65 : 0, grabY: pinching ? y * 45 : 0 };
+  return { x, y, pinching, grabX: 0, grabY: 0 };
 }

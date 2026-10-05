@@ -40,9 +40,10 @@ export function App() {
         element.style.setProperty('--bg-dark',blend([135,14,29],[9,56,34]));
         element.style.setProperty('--hue', `${mix * 137}`);
         element.style.setProperty('--shoe-hue', `${mix * 125}deg`);
-        element.style.setProperty('--rotation', `${angle * 15 + (query.matches ? 0 : rx * 12)}deg`);
-        element.style.setProperty('--roll', `${angle * 5}deg`);
-        element.style.setProperty('--pitch', `${query.matches ? 0 : -ry * 6}deg`);
+        element.style.setProperty('--rotation', `${angle * 15 + (query.matches ? 0 : rx * (state.hand ? 48 : 12))}deg`);
+        element.style.setProperty('--roll', `${state.hand ? rx * 14 : 0}deg`);
+        element.classList.toggle('shoe-packed', Boolean((state.hand && state.pinching) || state.previewPacked));
+        element.style.setProperty('--pitch', `${query.matches ? 0 : -ry * (state.hand ? 30 : 6)}deg`);
         element.style.setProperty('--float', `${angle * -13 + gy}px`);
         element.style.setProperty('--grab-x', `${gx}px`);
         element.style.setProperty('--shift', `${angle * 24}px`);
@@ -78,7 +79,7 @@ export function App() {
       <div className="index"><span>01</span><i /><span>02</span></div>
       <div className="shoe-stage">
         <div className="shoe-motion"><img className="shoe" src="/assets/jordan-shoe.png" alt="Red and black high-top sneaker with a white swoosh" draggable="false" /></div>
-        <div className="ground-shadow" />
+        <div className="shoe-box" aria-hidden="true"><div className="box-lid" /><div className="box-body"><span>NIKE</span><small>MAKE YOUR NEXT MOVE.</small></div></div><div className="ground-shadow" />
       </div>
       <button className="hotspot heel" aria-label="Explore support system" aria-expanded={detail === 'heel'} onClick={() => setDetail(detail === 'heel' ? null : 'heel')}><span>SUPPORT SYSTEM</span><b>+</b></button>
       <button className="hotspot knit" aria-label="Explore engineered knit" aria-expanded={detail === 'knit'} onClick={() => setDetail(detail === 'knit' ? null : 'knit')}><b>+</b><span>ENGINEERED KNIT</span></button>
